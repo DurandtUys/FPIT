@@ -46,6 +46,13 @@ const callbacks = {
 
     return token;
   },
+
+  async session({ session, token }) {
+    if (Date.now() >= token.user.exp * 1000) return null;
+    session.accessToken = token.accessToken;
+    session.user = token.user;
+    return session;
+  },
 };
 
 export const options = {
