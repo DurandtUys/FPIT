@@ -38,12 +38,12 @@ export function Login(props: LoginProps) {
     formState: { errors },
   } = useForm();
 
-  const handleLogin = async (props) => {
+  const handleLogin = async (data: LoginProps) => {
     setLoading(true);
     setMessage('');
     setError('');
     const { status } = await signIn('credentials', {
-      data:{props},
+      ...data,
       callbackUrl: `${window.location.origin}/`,
       redirect: false,
     });
