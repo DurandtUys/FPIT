@@ -1,46 +1,28 @@
 /* eslint-disable @nrwl/nx/enforce-module-boundaries */
 /* eslint-disable-next-line */
+import { PrismaClient } from '@prisma/client';
+
 export interface NotificationsProps {}
 
 import Notification  from "../../components/notification"; 
 
-const table_api = `http://13.244.78.12:3333/api/notification/getnotifications`;
+export async function getServerSideProps() 
+{
+  const prisma = new PrismaClient();
 
-const notifications =  [];
+    const notifications = await prisma.notification.findMany({
+      where: { userId: 1,Type:{contains:"Notification"}},
+    });
 
-export async function getServerSideProps() {
-  const  Form = "id=1";
+    const delet = await prisma.notification.deleteMany({
+      where: {Type:{contains:"Notification"}, userId: 1 },
+    });
 
-  const response = await fetch(table_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: Form,
-  });
-
-  const TaskData = await response.json();
-  for(let x = 0;x < TaskData.length;x++)
-  {
-    notifications.push(TaskData[x]);
-  }
-
-  if (response.status == 201) {
-    //console.log(TaskData)
-  }
-
-  if(response.status == 500)
-  {
-    console.log("No notifications found")
-  }
-
-  return {
-    props:{notifications}
-  }
+    return {props: {notifications}};
 }
 
-export function Notifications({notifications}) {
-  deleteAll();
+export function Notifications({notifications=[]}) {
+  
   if(notifications.length != 0)
   {
     return (
@@ -64,7 +46,7 @@ export function Notifications({notifications}) {
 
 function deleteAll()
 {
-  const table_api = 'http://13.246.23.178:3333/api/notification/deletenotification';
+  const table_api = 'http://localhost:3333/api/notification/deletenotification';
 
   async function del()
   {

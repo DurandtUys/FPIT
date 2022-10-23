@@ -5,6 +5,8 @@ export interface InventoryTableProps {
 }
 
 export function InventoryTable(props: InventoryTableProps) {
+
+  console.log(props);
   if(props.page != "home")
   {
     return (
@@ -23,13 +25,13 @@ export function InventoryTable(props: InventoryTableProps) {
             </thead>
             <tbody>
               {props.data.map(
-                ({ id,ProduceType, name, expireDate, produceStatus, lastRestock }) => {
+                ({ id,ProduceType, Name, expireDate, produceStatus, createdAt }) => {
                   return (
                     <tr key={id} className="text-sm text-center">
                       <th>{id}</th>
                       <td>{ProduceType}</td>
-                      <td>{name}</td>
-                      <td>{lastRestock}</td>
+                      <td>{Name}</td>
+                      <td>{createdAt}</td>
                       <td>{expireDate}</td>
                       <td className="flex justify-center">
                         <span

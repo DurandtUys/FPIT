@@ -1,15 +1,11 @@
 /* eslint-disable react/no-children-prop */
 /* eslint-disable @next/next/no-img-element */
 import { BiShow, BiHide } from 'react-icons/bi';
-import { MdOutlineDangerous, MdOutlineCheckCircle } from 'react-icons/md';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
 import { useState, Fragment } from 'react';
 import { useRouter } from 'next/router';
-import { Transition } from '@headlessui/react';
-import { CgSpinner } from 'react-icons/cg';
-import { signIn, useSession } from 'next-auth/react';
-import { SessionProvider } from "next-auth/react"
+import { PrismaClient } from '@prisma/client';
+import { UnauthorizedException } from '@nestjs/common';
 /* eslint-disable-next-line */
 export interface LoginProps {}
 interface Login {
@@ -26,39 +22,58 @@ enum Success {
   login = 'Success, correct credentials',
 }
 
-export function Login(props: LoginProps) {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+export async function getServerSideProps() 
+{
 
-  const handleLogin = async (data: LoginProps) => {
-    setLoading(true);
-    setMessage('');
-    setError('');
-    const { status } = await signIn('credentials', {
-      ...data,
-      callbackUrl: `${window.location.origin}/`,
-      redirect: false,
-    });
-    setLoading(false);
-    if (status === 200) {
-      router.push('/');
-      setError('');
-    } else if (status === 401) setError(Errors.loginError);
-    else if (status === 500) setError(Errors.serverError);
-  };
+  const prisma = new PrismaClient();
+  const users = await prisma.user.findMany()
+  let user = JSON.stringify(users);
+  user = JSON.parse(user)[0];
+
+  return {props: {user}};
+}
+
+export function Login({user}) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [pass,setPass] = useState("admin");
+  const [email,setEmail] = useState("admin");
+  const router = useRouter()
+
+  const login = async() =>
+  {
+    const form = new URLSearchParams();
+    form.append('email', email);
+    form.append('password', pass);
+
+    const response = await fetch('./api/login',{
+      method: 'POST',
+      body: form
+    })
+    
+    if(response.status == 200)
+    {
+      router.push('./')
+    }
+
+    if(response.status == 404)
+    {
+      alert("Database error");
+    }
+  }
+
+  function setPassword(e:any)
+  {
+    setPass(e.target.value);
+  }
+
+  function setE(e:any)
+  {
+    setEmail(e.target.value);
+  }
 
   return (
     <div className="grid w-screen h-full min-h-screen p-2 place-content-center bg-base-300/40">
-      <form
-        onSubmit={handleSubmit(handleLogin)}
+      <div
         className="w-full p-8 transition-all bg-white rounded-md shadow-md md:max-w-sm min-w-fit"
       >
         <div>
@@ -81,27 +96,10 @@ export function Login(props: LoginProps) {
               Email
             </label>
             <input
-              {...register('email', {
-                required: true,
-                pattern:
-                  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()\\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-              })}
-              id="email"
-              type="text"
-              name="email"
-              className={`w-full ${
-                errors.email ? 'ring-error' : 'ring-primary/20'
-              } mt-1 font-light rounded focus:ring-primary focus:outline-none input ring-1  input-sm`}
+              className={`w-full mt-1 font-light rounded focus:ring-primary focus:outline-none input ring-1  input-sm`}
+              type="username"
+              onChange={setE}
             />
-            <div className="mt-2 text-xs font-light text-error">
-              {errors?.email?.type === 'pattern' ? (
-                <p>Email address is invalid.</p>
-              ) : errors?.email?.type === 'required' ? (
-                <p>Email address is required.</p>
-              ) : (
-                ''
-              )}
-            </div>
           </div>
           <div className="relative flex flex-col">
             <label
@@ -111,22 +109,10 @@ export function Login(props: LoginProps) {
               Password
             </label>
             <input
-              role="textbox"
-              {...register('password', { required: true })}
-              type={`${showPassword ? 'text' : 'password'}`}
-              id="password"
-              name="password"
-              className={`w-full mt-1 font-light rounded input ${
-                errors?.password?.type === 'required'
-                  ? 'ring-error'
-                  : 'ring-primary/20'
-              }  focus:outline-none ring-1 focus:ring-primary input-sm`}
+              className={`w-full mt-1 font-light rounded input focus:outline-none ring-1 focus:ring-primary input-sm`}
+              type="password"
+              onChange={setPassword}
             />
-            <div className="mt-2 text-xs font-light text-error">
-              {errors?.password?.type === 'required' && (
-                <p>Password field is required.</p>
-              )}
-            </div>
             <div className="absolute cursor-pointer right-2 bottom-4">
               <input
                 defaultChecked={showPassword}
@@ -141,65 +127,12 @@ export function Login(props: LoginProps) {
           </div>
         </div>
 
-        {error.length > 0 && (
-          <Transition
-            as={Fragment}
-            appear={true}
-            show={true}
-            enter="transform transition duration-[200ms]"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transform duration-200 transition ease-in-out"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95 "
-          >
-            <div
-              tabIndex={0}
-              className="mt-4 text-sm rounded-md shadow-lg alert bg-error/20"
-            >
-              <div>
-                <MdOutlineDangerous className="w-5 h-5 text-rose-700" />
-                <span role="error-alert" className="font-medium text-rose-700">
-                  {error}
-                </span>
-              </div>
-            </div>
-          </Transition>
-        )}
-
-        {message && (
-          <Transition
-            as={Fragment}
-            appear={true}
-            show={true}
-            enter="transform transition duration-[200ms]"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transform duration-200 transition ease-in-out"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95 "
-          >
-            <div className="mt-2 text-sm rounded-md shadow-lg alert bg-success/20">
-              <div>
-                <MdOutlineCheckCircle className="w-5 h-5 text-lime-700" />
-                <span className="font-medium text-lime-800">{message}</span>
-              </div>
-            </div>
-          </Transition>
-        )}
-
         <div className="flex flex-col items-center mt-6">
           <button
-            disabled={loading}
-            type="submit"
-            value="Sign in"
+          onClick={login}
             className="flex items-center justify-center w-full px-1 py-2 font-light text-white rounded-md cursor-pointer disabled:bg-primary/80 bg-primary hover:bg-primary-focus"
           >
-            {loading ? (
-              <CgSpinner className="w-5 h-5 mt-3 text-white animate-spin top-2" />
-            ) : (
-              'Sign in'
-            )}
+            Sign in
           </button>
           <p className="mt-4 text-sm text-center">
             {"Don't"} have an account yet?
@@ -211,7 +144,7 @@ export function Login(props: LoginProps) {
             </Link>
           </p>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

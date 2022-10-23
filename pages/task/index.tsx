@@ -24,23 +24,9 @@ const Toast = Swal.mixin({
 });
 
 export async function getServerSideProps(context) {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    options
-  );
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
 
   const params = new url.URLSearchParams({
-    id: session.user?.id?.toString(),
+    id: "1",
   });
 
   const response = await axios.post(
@@ -76,7 +62,7 @@ export function Task({
     params.append('id', userId);
     params.append('message', message.toString());
     const { status } = await axios.post(
-      `http://13.246.32.49:3333/api/tasks/deletetask`,
+      `http://localhost:3333/api/tasks/deletetask`,
       params
     );
     if (status === 201) {
@@ -94,7 +80,7 @@ export function Task({
   
     const form = 'id=' + session.user?.id?.toString();
 
-    const response = await fetch("http://13.246.32.49:3333/api/tasks/gettasks", {
+    const response = await fetch("http://localhost:3333/api/tasks/gettasks", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

@@ -4,45 +4,19 @@
 /* eslint-disable-next-line */
 // react plugin used to create charts
 import Trends from '../components/trends';
-import { options } from './api/auth/[...nextauth]';
-import { unstable_getServerSession } from 'next-auth/next';
+import { PrismaClient } from '@prisma/client';
 
-const scale_api = `http://13.244.78.12:3333/api/scale/producelist`;
-const task_api = `http://13.244.78.12:3333/api/tasks/gettasks`;
-const sales_api = `http://13.244.78.12:3333/api/trendforyear/getall`;
+export async function getServerSideProps() {
 
-export async function getServerSideProps(context) {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    options
-  );
+  const prisma = new PrismaClient();
 
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
+  let trendData = await prisma.scale.findMany({ where: { userId: 1 } });
 
-  let form = 'id=' + session.user?.id?.toString();
+  trendData = JSON.parse(JSON.stringify(trendData));
 
-  let response = await fetch(scale_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: form,
-  });
-
-  const trendData = await response.json();
 
   let count = 0;
 
-  if(response.status == 201)
-  {
     for(let x = 0;x < trendData.length;x++)
     {
       const expireDate = new Date(trendData[x].expireDate);
@@ -56,29 +30,14 @@ export async function getServerSideProps(context) {
         trendData[x].produceStatus = "good";
       } 
     }
-  }
 
-  response = await fetch(task_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: form,
+  const taskData = await prisma.notification.findMany({
+    where: { userId: 1, Type: 'Task' },
   });
 
-  const taskData = await response.json();
-
-  form = "userid=" + session.user?.id?.toString();
-
-  response = await fetch(sales_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: form,
+  const saleData = await prisma.trendForYear.findMany({
+    where: { userId: 1 },
   });
-
-  const saleData = await response.json();
   let sales = 0;
   let FruitVeg = 0;
   let PoultryMeat = 0;
@@ -106,7 +65,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
-      session,trendData,taskData,count,sales,FruitVeg,PoultryMeat,Pastries
+      trendData,taskData,count,sales,FruitVeg,PoultryMeat,Pastries
     },
   };
 }

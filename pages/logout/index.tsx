@@ -8,24 +8,9 @@ import { options } from '../api/auth/[...nextauth]';
 import { useRouter } from 'next/router';
 
 export async function getServerSideProps(context) {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    options
-  );
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
 
   return {
     props: {
-      session,
     },
   };
 }

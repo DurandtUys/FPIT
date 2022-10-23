@@ -8,11 +8,11 @@ export interface MobileProps {
   type:string
 }
 
-const upload_url = `http://13.244.78.12:3333/api/image/uploadone`;
-const freshness_url = `http://13.244.78.12:3333/api/calcfreshness/predict`;
-const add_task = `http://13.244.78.12:3333/api/tasks/createtask`;
-const tableYear_api = `http://13.244.78.12:3333/api/trendforyear/getmonthaverages`;
-const produce_api = `http://13.244.78.12:3333/api/scale/producelist`;
+const upload_url = `http://192.168.1.6:3333/api/image/uploadone`;
+const freshness_url = `http://192.168.1.6:3333/api/calcfreshness/predict`;
+const add_task = `http://localhost:3333/api/tasks/createtask`;
+const tableYear_api = `http://localhost:3333/api/trendforyear/getmonthaverages`;
+const produce_api = `http://localhost:3333/api/scale/producelist`;
 
 let FreshProduce = 0;
 let PoultryMeat = 0;

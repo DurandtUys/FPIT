@@ -10,8 +10,7 @@ import { useState } from 'react';
 import { unstable_getServerSession } from 'next-auth/next';
 import { options } from '../api/auth/[...nextauth]';
 import { useSession } from 'next-auth/react';
-
-const scale_api = `http://13.244.78.12:3333/api/scale/producelist`;
+import { PrismaClient } from '@prisma/client';
 
 enum SHOW_ITEMS {
   '10 Items' = '10 Items',
@@ -27,35 +26,11 @@ enum SELECT_STATUS {
 
 
 export async function getServerSideProps(context) {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    options
-  );
 
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
+  const prisma = new PrismaClient();
 
-  const form = 'id=1';
+    const trendData = JSON.parse(JSON.stringify(await prisma.scale.findMany({ where: { userId: 1 } })));
 
-  const response = await fetch(scale_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: form,
-  });
-
-  const trendData = await response.json();
-
-  if(response.status == 201)
-  {
     for(let x = 0;x < trendData.length;x++)
     {
       const expireDate = new Date(trendData[x].expireDate);
@@ -67,20 +42,20 @@ export async function getServerSideProps(context) {
       {
         trendData[x].produceStatus = "good";
       } 
+
+      trendData[x].expireDate = new Date(new Date(trendData[x].createdAt).getDate() + 2).toString();
     }
-  }
 
   return {
     props: {
-      session,trendData
+      trendData
     },
   };
 }
 
 
 export function Inventory({trendData}) {
-  console.log(trendData);
-  const { data: session } = useSession();
+  
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [Title, setTitle] = useState("Add scale");
 
@@ -129,7 +104,7 @@ export function Inventory({trendData}) {
           closeModal={() => setShowImageUpload(false)}
           title={Title}
           description="Please select and upload an image for analysis."
-          id={session.user?.id?.toString()}
+          id={"1"}
         />
       </div>
       <div className="flex items-center mt-2 w-fit gap-x-4 md:mt-0">

@@ -2,8 +2,6 @@
 // @ts-nocheck
 import { useState } from "react";
 import {Chart} from "./../../components/chart/chart"
-import { options } from '../api/auth/[...nextauth]';
-import { unstable_getServerSession } from 'next-auth/next';
 
 const FreshProduce = [0,0,0,0,0,0,0,0,0,0,0,0];
 const PoultryMeat = [0,0,0,0,0,0,0,0,0,0,0,0];
@@ -13,8 +11,8 @@ let PoultryMeatLine = [];
 let PastriesLine = [];
 const months = [31,28,31,30,31,30,31,31,30,31,30,31]
 
-const scale_api = `http://13.244.78.12:3333/api/scale/producelist`;
-const tableYearAll_api = `http://13.244.78.12:3333/api/trendforyear/getall`;
+const scale_api = `http://localhost:3333/api/scale/producelist`;
+const tableYearAll_api = `http://localhost:3333/api/trendforyear/getall`;
 
 const option = [
   "All","Fruit&Veg","Meat","Pastries"
@@ -24,21 +22,7 @@ export interface InventoryProps {
   type:string
 }
 
-export async function getServerSideProps(context) {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    options
-  );
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
+export async function getServerSideProps() {
 
   const Form = "userid=" + session.user?.id?.toString();
 

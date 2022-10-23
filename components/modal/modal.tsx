@@ -35,9 +35,9 @@ const items: radioItem[] = [
   },
 ];
 
-const upload_url = `http://13.246.26.157:3333/api/image/uploadone`;
-const freshness_url = `http://13.246.26.157:3333/api/calcfreshness/predict`;
-const add_task = `http://13.246.26.157:3333/api/tasks/createtask`;
+const upload_url = `http://192.168.1.6:3333/api/image/uploadone`;
+const freshness_url = `http://localhost:3333/api/calcfreshness/predict`;
+const add_task = `http://localhost:3333/api/tasks/createtask`;
 
 const Toast = Swal.mixin({
   toast: true,
@@ -69,17 +69,15 @@ export function Modal(props: ModalProps) {
 
     const urlencoded = new URLSearchParams();
     urlencoded.append('userId', props.id);
-    urlencoded.append('weightfull', e.target[3].value+"");
-    urlencoded.append('weightone', e.target[2].value+"");
+    urlencoded.append('weightfull', e.target[3].value);
+    urlencoded.append('weightone', e.target[2].value);
     urlencoded.append('producetype', selectedType.name);
     urlencoded.append('name', e.target[0].value+"");
     urlencoded.append('description', e.target[1].value+"");
 
-    fetch(`http://13.246.26.157:3333/api/scale/setscale`, {
+    fetch(`./api/scales`, {
       method: 'POST',
-      headers: myHeaders,
       body: urlencoded,
-      redirect: 'follow',
     })
       .then((response) => response.json())
       .then((data) => {
@@ -103,7 +101,7 @@ export function Modal(props: ModalProps) {
     form.append('id', props.id);
     form.append('image', image);
 
-    const response = await fetch(upload_url, {
+    const response = await fetch('./api/upload', {
       method: 'POST',
       headers: myHeaders,
       body: form,
@@ -136,7 +134,7 @@ export function Modal(props: ModalProps) {
     const myHeaders = new Headers();
     myHeaders.append('Access-Control-Allow-Origin', '*');
 
-    const response = await fetch(freshness_url, {
+    const response = await fetch('./api/prediction', {
       method: 'POST',
       headers: myHeaders,
       body: urlencoded,

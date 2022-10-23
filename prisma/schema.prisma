@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  password        String?
+  passwordSalt    String?  @map("password_salt")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  Name            String?
+  Surname         String?
+  Bio             String?
+  Visibility      Boolean?
+  @@map("user")
+  Produce         Produce[]
+  Image           Image[]
+  Scale           Scale[]
+  Feedback_Data   Feedback_Data[]
+  Notification    Notification[]
+  Trend           Trend[]
+  TrendForYear    TrendForYear[]
+}
+
+model Produce {
+  id         Int         @default(autoincrement())
+  userId     Int         @map("user_id")
+  type       ProduceType @map("type")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  sellByDate DateTime?
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id, userId])
+  @@map("produce")
+}
+
+model Image {
+  id        Int      @default(autoincrement())
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  imageUrl  String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id, userId])
+  @@map("image")
+}
+
+model Scale {
+  id                  Int      @default(autoincrement()) @unique
+  userId              Int      @map("user_id")
+  WeightIndividual    Int      @map("weight_Individual")
+  WeightTotal         Int      @map("weight_total")
+  Name                String?  @map("name")
+  Description         String?  @map("description")
+  ProduceType         String?   @map("produce_type")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  Scale_Trend         Scale_Trend[]
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id, userId])
+  @@map("scale")
+}
+
+model Scale_Trend {
+  id            Int       @default(autoincrement())
+  scale_id      Int       @map("scale_id")
+  ProduceType   String   @map("produce_type")
+  weight        Int[]     @map("weight")
+  date          DateTime[]  @map("date")
+  scale         Scale     @relation(fields: [scale_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@id([id, scale_id,ProduceType])
+  @@map("scale_trend")
+}
+
+model Trend {
+  id                  Int       @default(autoincrement())
+  userId              Int       @map("user_id")
+  ProduceType         String   @map("produce_type")
+  Day                 Weekdays?
+  AverageSalesAmount  Float? 
+  AmountSales         Int?
+  SaleDate            DateTime?
+  LastRestock         DateTime?
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@id([id, userId,ProduceType])
+  @@map("trend")
+}
+
+model TrendForYear {
+  id                         Int         @default(autoincrement())
+  userId                     Int         @map("user_id")
+  ProduceType                String      @map("produce_type")
+  AverageSalesAmountForYear  Float[]     @map("average_sales_amount_for_year")
+  AmountSalesForYear         Int[]       @map("amount_sales_for_year")
+  SaleDate                   DateTime?
+  LastRestock                DateTime?
+  user                       User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@id([id, userId,ProduceType])
+  @@map("trendforYear")
+}
+
+model Feedback_Data {
+  id            Int      @default(autoincrement())
+  userId        Int      @map("user_id")
+  stockLevel    String?      @map("stock_level")
+  produceType   ProduceType   @map("produce")
+  Freshness     Int[]  @map("freshness")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id, userId])
+  @@map("feedback_data")
+}
+model Notification {
+  id        Int      @default(autoincrement())
+  userId    Int      @map("user_id")
+  Type      String?    @map("type")
+  taskType  String?    @map("task_type")
+  produceType String?  @map("produce_type")
+  message   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id, userId])
+  @@map("notification")
+}
+
+
+enum ProduceType {
+  BREAD
+  MEAT
+  FLOUR
+  MILK
+}
+enum Stock_Level {
+  HIGH
+  MEDIUM
+  LOW
+}
+enum Weekdays {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saterday
+  Sunday
+}
