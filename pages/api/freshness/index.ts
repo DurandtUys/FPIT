@@ -2,7 +2,7 @@ import { NotFoundException } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 import tf from '@tensorflow/tfjs';
 import fs from 'fs';
-import tfnode = require('@tensorflow/tfjs-node');
+import tfnode from '@tensorflow/tfjs-node';
 
 export default async function handler(req, res) {
 
