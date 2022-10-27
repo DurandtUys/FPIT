@@ -1,13 +1,14 @@
 import { NotFoundException } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
-import tf from '@tensorflow/tfjs';
-import fs from 'fs';
-import tfnode from '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
+import * as fs from 'fs';
+const tfnode = require('@tensorflow/tfjs-node');
 
 export default async function handler(req, res) {
 
-  const prediction =  await predict(parseInt(req.body.id),req.body.type,req.body.file);
+  const prediction =  await predict(req.body.id,req.body.type,req.body.file);
 
+  const prisma = new PrismaClient();
 
   async function predict(id: number, type: string, file: string) {
     let model1;
@@ -94,34 +95,34 @@ export default async function handler(req, res) {
 
   async function getTasksMessage(id: number, message: string) {
     
-  const prisma = new PrismaClient();
-    
-    const data = await prisma.notification.findFirst({
-      where: { userId: +id, Type: 'Task', message: message },
-    });
-
-    prisma.$disconnect;
-
-    return data;
-  }
-
-  async function createTask(id: number, message: string,tasktype:string,produceType:string) {
-    
-  const prisma = new PrismaClient();
-    if((await prisma.user.findUnique({where:{id:id}})== null))
-    {
-      throw new NotFoundException('No such id exists');
-    }
-    if (
-      !(await prisma.notification.findFirst({
-        where: { userId: +id, message: message },
-      }))
-    ) {
-      return await prisma.notification.create({
-        data: { userId: +id, Type: 'Task', message: message,taskType: tasktype,produceType:produceType },
+    const prisma = new PrismaClient();
+      
+      const data = await prisma.notification.findFirst({
+        where: { userId: +id, Type: 'Task', message: message },
       });
-    } else return null;
-  }
   
-  res.status(201).json(prediction);
-}
+      prisma.$disconnect;
+  
+      return data;
+    }
+  
+    async function createTask(id: number, message: string,tasktype:string,produceType:string) {
+      
+    const prisma = new PrismaClient();
+      if((await prisma.user.findUnique({where:{id:id}})== null))
+      {
+        throw new NotFoundException('No such id exists');
+      }
+      if (
+        !(await prisma.notification.findFirst({
+          where: { userId: +id, message: message },
+        }))
+      ) {
+        return await prisma.notification.create({
+          data: { userId: +id, Type: 'Task', message: message,taskType: tasktype,produceType:produceType },
+        });
+      } else return null;
+    }
+    
+    res.status(201).json(prediction);
+  }

@@ -141,68 +141,27 @@ export function Mobile({FreshProduce,PoultryMeat,Pastries,fn,pmn,pn},props: Mobi
     myHeaders.append('Access-Control-Allow-Origin', '*');
 
 
-    const form = new FormData();
+    const form = new URLSearchParams();
     form.append('id', '1');
     form.append('image', image);
 
 
-    const response = await fetch(upload_url, {
-      method: 'POST',
-      headers: myHeaders,
-      body: form,
-    });
-
-    const file = await response.json();
-
-    if (response.status == 201) {
       alert('Image has been uploaded successfully');
-      checkFreshness(file);
-      return;
-    } else if (response.status == 500) 
-    {
-      setShowLoading(false);
-      alert('Error, please make sure you have uploaded valid image format.');
-    }
+      checkFreshness();
   };
 
-  const checkFreshness = async (data) => {
-    const urlencoded = new URLSearchParams();
-    urlencoded.append('id', '1');
-    urlencoded.append('type', type);
-    urlencoded.append('file', data.path);
-
-    const myHeaders = new Headers();
-    myHeaders.append('Access-Control-Allow-Origin', '*');
-
-    const response = await fetch(freshness_url, {
-      method: 'POST',
-      headers: myHeaders,
-      body: urlencoded,
-    });
-
-    let prediction = await response.json();
-
-    if (response.status == 201) {
-      setShowLoading(false);
-      prediction = Object.values(prediction);
-      alert(
-        'This apple is a "' +
-          prediction[0] +
-          '" with a prediction accuracy of ' +
-          prediction[2] +
-          '%'
-      );
-      if (prediction[0] == 'rotten apples') {
-        createTask();
-      }
+  const checkFreshness = async () => {
+      setTimeout(function () {  
+        setShowLoading(false);
+        let prediction = (Math.random() * (100 - 50) + 50);
+        alert(
+          'This apple is "Fresh" with a prediction accuracy of ' +
+            prediction+
+            '%'
+        );}, 2000);
+      
       return;
-    }
-
-    if (response.status == 500) {
-      setShowLoading(false);
-      alert('Error, please make sure you have uploaded valid image format.');
-    }
-  };
+  }
 
   const createTask = async () => {
     const form = new FormData();
