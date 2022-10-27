@@ -25,11 +25,14 @@ enum SELECT_STATUS {
 }
 
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps() {
+
+  const data = await( await fetch("http://localhost:3000/api/getsession")).json();
+  const id = parseInt(data[0].id);
 
   const prisma = new PrismaClient();
 
-    const trendData = JSON.parse(JSON.stringify(await prisma.scale.findMany({ where: { userId: 1 } })));
+    const trendData = JSON.parse(JSON.stringify(await prisma.scale.findMany({ where: { userId: id } })));
 
     for(let x = 0;x < trendData.length;x++)
     {

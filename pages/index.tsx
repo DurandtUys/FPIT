@@ -8,9 +8,12 @@ import { PrismaClient } from '@prisma/client';
 
 export async function getServerSideProps() {
 
+  const data = await(await fetch("http://localhost:3000/api/getsession")).json();
+  const id = parseInt(data[0].id);
+
   const prisma = new PrismaClient();
 
-  let trendData = await prisma.scale.findMany({ where: { userId: 1 } });
+  let trendData = await prisma.scale.findMany({ where: { userId: id } });
 
   trendData = JSON.parse(JSON.stringify(trendData));
 
@@ -32,11 +35,11 @@ export async function getServerSideProps() {
     }
 
   const taskData = await prisma.notification.findMany({
-    where: { userId: 1, Type: 'Task' },
+    where: { userId: id, Type: 'Task' },
   });
 
   const saleData = await prisma.trendForYear.findMany({
-    where: { userId: 1 },
+    where: { userId: id },
   });
   let sales = 0;
   let FruitVeg = 0;

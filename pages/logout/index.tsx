@@ -2,9 +2,6 @@ import styles from './index.module.css';
 
 /* eslint-disable-next-line */
 export interface LogoutProps {}
-import { signOut } from "next-auth/react"
-import { unstable_getServerSession } from 'next-auth/next';
-import { options } from '../api/auth/[...nextauth]';
 import { useRouter } from 'next/router';
 
 export async function getServerSideProps(context) {
@@ -16,7 +13,11 @@ export async function getServerSideProps(context) {
 }
 
 export function Logout(props: LogoutProps) {
-  signOut({redirect:false});
+  const signOut = async() => {
+    const response = await fetch('./api/logout');
+  }
+
+  signOut();
   const router = useRouter();
   setTimeout(function () {
     router.push('/login');

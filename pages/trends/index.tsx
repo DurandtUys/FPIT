@@ -2,6 +2,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import {Chart} from "./../../components/chart/chart"
+import { PrismaClient } from "@prisma/client";
 
 const FreshProduce = [0,0,0,0,0,0,0,0,0,0,0,0];
 const PoultryMeat = [0,0,0,0,0,0,0,0,0,0,0,0];
@@ -11,8 +12,8 @@ let PoultryMeatLine = [];
 let PastriesLine = [];
 const months = [31,28,31,30,31,30,31,31,30,31,30,31]
 
-const scale_api = `http://localhost:3333/api/scale/producelist`;
-const tableYearAll_api = `http://localhost:3333/api/trendforyear/getall`;
+const scale_api = `http://localhost:3000/api/producelist`;
+const tableYearAll_api = `http://localhost:3000/api/getall`;
 
 const option = [
   "All","Fruit&Veg","Meat","Pastries"
@@ -24,41 +25,47 @@ export interface InventoryProps {
 
 export async function getServerSideProps() {
 
-  const Form = "userid=" + session.user?.id?.toString();
+  const prisma = new PrismaClient();
 
-  const responses = await fetch(tableYearAll_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: Form,
-  });
+  const data = await(await fetch("http://localhost:3000/api/getsession")).json();
+  const id = parseInt(data[0].id);
 
-  const form = 'id=' + session.user?.id?.toString();
-
-  const response = await fetch(scale_api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-    body: form,
-  });
-
-  const trendDatas = await responses.json();
-  const trendData = await response.json();
-
-  if(responses.status == 201 && response.status == 201)
-  {
-    PastriesLine = [];
-    FreshProduceLine = [];
-    PoultryMeatLine = [];
     let count = 0;
-    for(let x = 0;x < trendDatas.length;x++)
+
+    const Form = "userid=" + id;
+
+    const responses = await fetch(tableYearAll_api, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      body: Form,
+    });
+
+    const form = 'id=' + id;
+
+    const response = await fetch(scale_api, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      body: form,
+    });
+
+    const trendDatas = await responses.json();
+    const trendData = await response.json();
+
+    if(responses.status == 201)
     {
-      if(trendDatas[x].ProduceType == "Fresh Produce")
+      PastriesLine = [];
+      FreshProduceLine = [];
+      PoultryMeatLine = [];
+      for(let x = 0;x < trendDatas.length;x++)
       {
-        count = 0;
-        for(let y=0;y < months.length;y++)
+        if(trendDatas[x].ProduceType == "Fresh Produce")
+        {
+          count = 0;
+          for(let y=0;y < months.length;y++)
           {
             for(let z = 0;z < months[y];z++)
             {
@@ -66,13 +73,11 @@ export async function getServerSideProps() {
               count++;
             }
           }
-
           const obj = {label:"",data:[],borderColor:""};
-          let colour = "rgba(";
+          let colour = "rgba("
           const singleData = [0,0,0,0,0,0,0,0,0,0,0,0];
           count = 0;
-
-          for(let y = 0;y < months.length;y++)
+          for(let y=0;y < months.length;y++)
           {
             for(let z = 0;z < months[y];z++)
             {
@@ -80,7 +85,6 @@ export async function getServerSideProps() {
               count++;
             }
           }
-
           for(let y = 0;y < trendData.length;y++)
           {
             if(trendData[y].id == trendDatas[x].id)
@@ -88,23 +92,20 @@ export async function getServerSideProps() {
               obj.label = trendData[y].name;
             }
           }
-
           for(let y = 0;y < 3;y++)
           {
             colour += Math.floor(Math.random() * 256) + ",";
           }
-
           colour+="1)";
           
           obj.data = singleData;
           obj.borderColor = colour;
           FreshProduceLine.push(obj);
-      }
-      else if(trendDatas[x].ProduceType == "Poultry/Meat")
-      {
-        
-        count = 0;
-        for(let y=0;y < months.length;y++)
+        }
+        else if(trendDatas[x].ProduceType == "Poultry/Meat")
+        {
+          count = 0;
+          for(let y=0;y < months.length;y++)
           {
             for(let z = 0;z < months[y];z++)
             {
@@ -139,13 +140,12 @@ export async function getServerSideProps() {
           
           obj.data = singleData;
           obj.borderColor = colour;
-        PoultryMeatLine.push(obj);
-      }
-      else 
-      {
-        
-        count = 0;
-        for(let y=0;y < months.length;y++)
+          PoultryMeatLine.push(obj);
+        }
+        else 
+        {
+          count = 0;
+          for(let y=0;y < months.length;y++)
           {
             for(let z = 0;z < months[y];z++)
             {
@@ -180,17 +180,17 @@ export async function getServerSideProps() {
           
           obj.data = singleData;
           obj.borderColor = colour;
-        PastriesLine.push(obj);
+          PastriesLine.push(obj);
+        }
       }
     }
-  }
 
   return {
-    props:{FreshProduce,PoultryMeat,Pastries,FreshProduceLine,PoultryMeatLine,PastriesLine}
+    props:{FreshProduce,PoultryMeat,Pastries,FreshProduceLine,PoultryMeatLine,PastriesLine,id}
   }
 }
 
-export function Trends({FreshProduce,PoultryMeat,Pastries,FreshProduceLine,PoultryMeatLine,PastriesLine},props:InventoryProps) {
+export function Trends({FreshProduce,PoultryMeat,Pastries,FreshProduceLine,PoultryMeatLine,PastriesLine,id},props:InventoryProps) {
   let x = 0;
   const [type, setType] = useState("Bar");
   const [produce, setProduce] = useState("Fruit");
@@ -236,7 +236,7 @@ export function Trends({FreshProduce,PoultryMeat,Pastries,FreshProduceLine,Poult
     Pastries = [0,0,0,0,0,0,0,0,0,0,0,0];
     let count = 0;
 
-    const Form = "userid=1";
+    const Form = "userid=" + id;
 
     const responses = await fetch(tableYearAll_api, {
       method: 'POST',
@@ -246,7 +246,7 @@ export function Trends({FreshProduce,PoultryMeat,Pastries,FreshProduceLine,Poult
       body: Form,
     });
 
-    const form = 'id=1';
+    const form = 'id=' + id;
 
     const response = await fetch(scale_api, {
       method: 'POST',

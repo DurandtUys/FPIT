@@ -6,7 +6,6 @@ export interface InventoryTableProps {
 
 export function InventoryTable(props: InventoryTableProps) {
 
-  console.log(props);
   if(props.page != "home")
   {
     return (
@@ -73,11 +72,11 @@ export function InventoryTable(props: InventoryTableProps) {
             </thead>
             <tbody>
               {props.data.map(
-                ({ id,name,produceStatus}) => {
+                ({ id,Name,produceStatus}) => {
                   return (
                     <tr key={id} className="text-sm text-center">
                       <th>{id}</th>
-                      <td>{name}</td>
+                      <td>{Name}</td>
                       <td className="flex justify-center">
                         <span
                           className={`py-2 px-4 rounded-full ${

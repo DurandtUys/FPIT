@@ -2,15 +2,13 @@
 /* eslint-disable-next-line */
 export interface UserProps {}
 import axios from 'axios';
-import url from 'node:url';
-import { options } from '../api/auth/[...nextauth]';
-import { unstable_getServerSession } from 'next-auth/next';
 import { BiUser } from 'react-icons/bi';
 import { useForm } from 'react-hook-form';
-import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { CgSpinner } from 'react-icons/cg';
 import Swal from 'sweetalert2';
+import { PrismaClient } from '@prisma/client';
+
 const profileUrl = `http://localhost:3333/api/profile/getprofile`;
 
 const Toast = Swal.mixin({
@@ -21,74 +19,28 @@ const Toast = Swal.mixin({
   timerProgressBar: true,
 });
 
-// export async function getStaticProps() {
-//   const Form = 'id=1';
+export async function getServerSideProps() {
 
-//   const response = await fetch(table_api, {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-//     },
-//     body: Form,
-//   });
+  const prisma = new PrismaClient();
 
-//   const profileResponse = await fetch(profile, {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-//     },
-//     body: Form,
-//   });
-
-//   const TaskData = await response.json();
-//   console.log(profileResponse);
-//   const Profile = await profileResponse.json();
-//   const tasks = [];
-//   for (let x = 0; x < TaskData.length; x++) {
-//     tasks.push(TaskData[x]);
-//   }
-
-//   if (response.status == 201) {
-//     console.log(TaskData);
-//   }
-
-//   if (response.status == 500) {
-//     console.log('No tasks found');
-//   }
-
-//   return {
-//     props: { tasks, Profile },
-//     revalidate: 1,
-//   };
-// }
-
-export async function getServerSideProps(context) {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    options
-  );
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
-
-  const params = new url.URLSearchParams({
-    token: session?.accessToken?.toString(),
-  });
-
-  const response = await axios.post(profileUrl, params);
+  const data = await(await fetch("http://localhost:3000/api/getsession")).json();
+  const id = parseInt(data[0].id);
+  
+  let response = await prisma.user.findFirst({
+      where: { id: id },
+      select: {
+        Bio: true,
+        Name: true,
+        Surname: true,
+        email: true
+      }
+    });
 
   return {
     props: {
-      data: response.data,
-      status: response.status,
-      accessToken: session?.accessToken?.toString(),
+      data: response,
+      status: "200",
+      id:id
     },
   };
 }
@@ -99,10 +51,14 @@ interface handleUpdateUserProfileProps {
   bio: string;
 }
 
-export function User({ data, status, accessToken }) {
+export function User({ data, status,id}) {
   const [loadingUserProfileUpdate, setLoadingUserProfileUpdate] =
     useState<boolean>(false);
-  const { data: session } = useSession();
+
+  const [Name,setName] = useState(data.Name); 
+  const [Surname,setSName] = useState(data.Surname); 
+  const [Bio,setBio] = useState(data.Bio); 
+
   const {
     register,
     handleSubmit,
@@ -114,10 +70,12 @@ export function User({ data, status, accessToken }) {
   ) => {
     setLoadingUserProfileUpdate(true);
     const params = new URLSearchParams();
-    params.append('token', session?.accessToken?.toString());
-    params.append('data', JSON.stringify(validatedData));
+    params.append('id', id);
+    params.append('Name', Name);
+    params.append('Bio', Bio);
+    params.append('Surname', Surname);
     const {status} = await axios.post(
-      `http://localhost:3333/api/profile/editProfile`,
+      `http://localhost:3000/api/updateUser`,
       params
     );
     
@@ -126,6 +84,7 @@ export function User({ data, status, accessToken }) {
         icon: 'success',
         title: 'User information updated.',
       });
+      data = await(await fetch("http://localhost:3000/api/getsession")).json();
     } else if (status >= 500) {
       Toast.fire({
         icon: 'error',
@@ -144,6 +103,21 @@ export function User({ data, status, accessToken }) {
         </p>
       </div>
     );
+
+    function setNAME(e)
+    {
+      setName(e.target.value);
+    }
+
+    function setSNAME(e)
+    {
+      setSName(e.target.value);
+    }
+
+    function setBIO(e)
+    {
+      setBio(e.target.value);
+    }
 
   return (
     <div className="p-4">
@@ -169,6 +143,7 @@ export function User({ data, status, accessToken }) {
                 defaultValue={data?.Name}
                 type="text"
                 className="w-full p-2 rounded ring-1 ring-black"
+                onChange={setNAME}
               />
               {errors['Name'] && (
                 <span className="text-xs text-red-500 ">
@@ -185,6 +160,7 @@ export function User({ data, status, accessToken }) {
                 defaultValue={data?.Surname}
                 type="text"
                 className="w-full p-2 rounded ring-1 ring-black"
+                onChange={setSNAME}
               />
               {errors['Surname'] && (
                 <span className="text-xs text-red-500 ">
@@ -199,8 +175,9 @@ export function User({ data, status, accessToken }) {
             </label>
             <textarea
               {...register('Bio', { required: false })}
-              defaultValue={data.Bio}
+              defaultValue={data?.Bio}
               className="w-full p-2 rounded ring-1 ring-black"
+              onChange={setBIO}
             />
           </div>
           <div className="mt-8">
@@ -295,30 +272,6 @@ export function User({ data, status, accessToken }) {
         </div>
       </div>
     </div>
-
-    //
-
-    // <div className="ml-2 h-5/6 border-solid border-2 mt-4 pt-2 lg:max-w-[98%] rounded">
-    //   <div className="grid grid-cols-4 ml-2 h-3/6">
-    //     <div className="my-2 ml-2 avatar">
-    //       <div className="border-2 border-solid rounded-lg w-80">
-    //         <Image />
-    //       </div>
-    //     </div>
-    //     <UserInfo data={Profile}></UserInfo>
-    //   </div>
-    //   <div className="ml-4 mr-4 border-2 border-solid rounded-lg h-2/5">
-    //     <h1 className="content-center mt-2 ml-6 font-bold font-lg">Tasks:</h1>
-    //     <div className="h-full mt-2 overflow-auto">
-    //       <div className="grid h-10 grid-cols-12 m-2 bg-blue-200 rounded-lg place-items-center">
-    //         <div>ID</div>
-    //         <div className="col-span-10">Description</div>
-    //       </div>
-    //       <Task data={tasks}></Task>
-    //     </div>
-    //     <p className="m-2"></p>
-    //   </div>
-    // </div>
   );
 }
 

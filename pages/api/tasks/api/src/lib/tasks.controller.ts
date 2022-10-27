@@ -1,9 +1,8 @@
 import { Body, Controller, NotFoundException, Post } from '@nestjs/common';
 import { taskService } from '../../../service/src/lib/taskService.service';
-import {NotificationService} from '../../../../notifications/service/src/lib/notification.service';
 @Controller('tasks')
 export class tasksController {
-  constructor(private taskService: taskService,private NotificationService:NotificationService) {}
+  constructor(private taskService: taskService) {}
 
   @Post('gettasks')
   async getTasks(@Body('id') id: number) {
@@ -24,7 +23,6 @@ export class tasksController {
   @Post('deletetask')
   async deleteTasks(@Body('id') id: number, @Body('message') message: string) {
     try {
-      await this.NotificationService.deleteNotificationMessage(id,message);
       return await this.taskService.deleteTasks(+id, message);
     } catch (err) {
       throw new NotFoundException();

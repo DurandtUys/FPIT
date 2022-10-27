@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useState, Fragment } from 'react';
 import { useRouter } from 'next/router';
 import { PrismaClient } from '@prisma/client';
+import { Transition } from '@headlessui/react';
 import { UnauthorizedException } from '@nestjs/common';
+import { MdOutlineDangerous } from 'react-icons/md';
 /* eslint-disable-next-line */
 export interface LoginProps {}
 interface Login {
@@ -38,6 +40,7 @@ export function Login({user}) {
   const [pass,setPass] = useState("admin");
   const [email,setEmail] = useState("admin");
   const router = useRouter()
+  const [error, setError] = useState('');
 
   const login = async() =>
   {
@@ -55,9 +58,9 @@ export function Login({user}) {
       router.push('./')
     }
 
-    if(response.status == 404)
+    if(response.status == 400)
     {
-      alert("Database error");
+      setError(Errors.loginError)
     }
   }
 
@@ -97,7 +100,7 @@ export function Login({user}) {
             </label>
             <input
               className={`w-full mt-1 font-light rounded focus:ring-primary focus:outline-none input ring-1  input-sm`}
-              type="username"
+              type="email"
               onChange={setE}
             />
           </div>
@@ -126,6 +129,32 @@ export function Login({user}) {
             </div>
           </div>
         </div>
+
+        {error.length > 0 && (
+          <Transition
+            as={Fragment}
+            appear={true}
+            show={true}
+            enter="transform transition duration-[200ms]"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="transform duration-200 transition ease-in-out"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95 "
+          >
+            <div
+              tabIndex={0}
+              className="mt-4 text-sm rounded-md shadow-lg alert bg-error/20"
+            >
+              <div>
+                <MdOutlineDangerous className="w-5 h-5 text-rose-700" />
+                <span role="error-alert" className="font-medium text-rose-700">
+                  {error}
+                </span>
+              </div>
+            </div>
+          </Transition>
+        )}
 
         <div className="flex flex-col items-center mt-6">
           <button

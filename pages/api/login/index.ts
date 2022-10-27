@@ -1,6 +1,5 @@
 import {PrismaClient} from "@prisma/client"
 import bcrypt from 'bcrypt';
-import {User} from '../../../data/users'
 import fs from 'fs'
 
 export default async function handler(req,res)
@@ -17,7 +16,8 @@ export default async function handler(req,res)
         }
         else
         {
-            const newUser = "export const User = [{\nid:" + user.id + "\n}\n]";
+            const newUser = "export const User = [{\nid:'" + user.id + "',\nname:'" + user.Name + "',\nsurname:'" + user.Surname
+            + "',\nBio:'" + user.Bio  + "',\nemail:'" + req.body.email + "'\n}\n]";
             fs.writeFileSync('./data/users.ts', newUser);
             res.status(200).json();
         }

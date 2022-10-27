@@ -25,12 +25,16 @@ const Toast = Swal.mixin({
 
 export async function getServerSideProps(context) {
 
+  const data = await(await fetch("http://localhost:3000/api/getsession")).json();
+  const id = parseInt(data[0].id);
+
   const params = new url.URLSearchParams({
-    id: "1",
+    id: id,
+    meth:"get"
   });
 
   const response = await axios.post(
-    `${process.env.BACKEND_URL}/api/tasks/gettasks`,
+    'http://localhost:3000/api/tasks',
     params
   );
 
@@ -38,8 +42,7 @@ export async function getServerSideProps(context) {
     props: {
       data: response.data,
       status: response.status,
-      userId: session?.user?.id.toString(),
-      session
+      userId: id
     },
   };
 }
@@ -53,16 +56,16 @@ export function Task({
   status: number;
   userId: string;
   }) {
-  const { data: session } = useSession();
   const [tasks,setTask] = useState(data);
   const [loading, setLoading] = useState<boolean>(false);
   const handleDeleteTask = async (message: string) => {
     setLoading(true);
     const params = new URLSearchParams();
     params.append('id', userId);
+    params.append('meth',"del");
     params.append('message', message.toString());
     const { status } = await axios.post(
-      `http://localhost:3333/api/tasks/deletetask`,
+      `http://localhost:3000/api/tasks`,
       params
     );
     if (status === 201) {
@@ -78,9 +81,9 @@ export function Task({
     }
     setLoading(false);
   
-    const form = 'id=' + session.user?.id?.toString();
+    const form = 'id=' + userId + '&meth=get';
 
-    const response = await fetch("http://localhost:3333/api/tasks/gettasks", {
+    const response = await fetch("http://localhost:3000/api/tasks", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

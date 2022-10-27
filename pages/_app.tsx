@@ -3,11 +3,14 @@ import Head from 'next/head';
 import Layout from '../components/layout/layout';
 import { SessionProvider } from 'next-auth/react';
 import './styles.css';
+import { useState } from 'react';
+import router from 'next/router';
 
 function CustomApp({
   Component,
   pageProps: {...pageProps },
-}: AppProps) {
+}: AppProps,) {
+  
   return (
     <>
       <Head>

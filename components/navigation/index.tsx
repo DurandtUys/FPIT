@@ -4,10 +4,10 @@ import { useRouter } from 'next/router';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { useSession } from 'next-auth/react';
 /* eslint-disable-next-line */
-export interface NavigationProps {}
+export interface NavigationProps {
+}
 
 export function Navigation(props: NavigationProps) {
-  const { data: session } = useSession();
   const router = useRouter();
   return (
     <header>
@@ -39,10 +39,6 @@ export function Navigation(props: NavigationProps) {
 
           <div className="flex items-center cursor-pointer gap-x-2">
             <div className="flex-col hidden text-right md:flex">
-              <label className="text-sm">{session?.user?.name}</label>
-              <label className="text-xs text-black">
-                {session?.user?.email}
-              </label>
             </div>
 
             <div className="dropdown dropdown-end">

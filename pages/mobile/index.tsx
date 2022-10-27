@@ -8,11 +8,11 @@ export interface MobileProps {
   type:string
 }
 
-const upload_url = `http://192.168.1.6:3333/api/image/uploadone`;
-const freshness_url = `http://192.168.1.6:3333/api/calcfreshness/predict`;
-const add_task = `http://localhost:3333/api/tasks/createtask`;
-const tableYear_api = `http://localhost:3333/api/trendforyear/getmonthaverages`;
-const produce_api = `http://localhost:3333/api/scale/producelist`;
+const upload_url = `http://192.168.1.6:3000/api/uploadFile`;
+const freshness_url = `http://192.168.1.6:3000/api/freshness`;
+const add_task = `http://localhost:3000/api/tasks`;
+const tableYear_api = `http://localhost:3000/api/trendforyear`;
+const produce_api = `http://localhost:3000/api/producelist`;
 
 let FreshProduce = 0;
 let PoultryMeat = 0;
@@ -33,13 +33,13 @@ export async function getServerSideProps() {
     body: Form,
   });
 
-  let trendDatas: number = await response.json();
+  let trendDatas = await response.json();
 
   if(response.status == 201)
   {
-    for(let x = 0;x < Object.values(trendDatas)[2].length;x++)
+    for(let x = 0;x < trendDatas.averagesForMonths.length;x++)
     {
-      FreshProduce+=(Object.values(trendDatas)[2][x]);
+      FreshProduce+=(trendDatas.averagesForMonths[x]);
     }
   }
 
@@ -57,9 +57,9 @@ export async function getServerSideProps() {
 
   if(response.status == 201)
   {
-    for(let x = 0;x < (Object.values(trendDatas)[2]).length;x++)
+    for(let x = 0;x < trendDatas.averagesForMonths.length.length;x++)
     {
-      PoultryMeat+=(Object.values(trendDatas)[2][x]);
+      PoultryMeat+=(trendDatas.averagesForMonths.length[x]);
     }
   }
 
@@ -77,9 +77,9 @@ export async function getServerSideProps() {
 
   if(response.status == 201)
   {
-    for(let x = 0;x < Object.values(trendDatas)[2].length;x++)
+    for(let x = 0;x < trendDatas.averagesForMonths.length.length;x++)
     {
-     Pastries+=(Object.values(trendDatas)[2][x]);
+     Pastries+=(trendDatas.averagesForMonths.length[x]);
     }
   }
 
@@ -195,7 +195,6 @@ export function Mobile({FreshProduce,PoultryMeat,Pastries,fn,pmn,pn},props: Mobi
       if (prediction[0] == 'rotten apples') {
         createTask();
       }
-      console.log(prediction);
       return;
     }
 

@@ -1,5 +1,4 @@
 import { Body, Controller, NotFoundException, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { profileService } from '../../../service/src/lib/profile.service';
 @Controller('profile')
 export class profileController {

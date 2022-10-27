@@ -35,9 +35,9 @@ const items: radioItem[] = [
   },
 ];
 
-const upload_url = `http://192.168.1.6:3333/api/image/uploadone`;
-const freshness_url = `http://localhost:3333/api/calcfreshness/predict`;
-const add_task = `http://localhost:3333/api/tasks/createtask`;
+const upload_url = `./api/image/api/src/lib/ImageController/uploadone`;
+const freshness_url = `./api/calcfreshness/api/src/lib/predict`;
+const add_task = `./api/tasks/api/src/lib/createtask`;
 
 const Toast = Swal.mixin({
   toast: true,
@@ -59,23 +59,24 @@ export function Modal(props: ModalProps) {
 
   const onImageChange = (e) => setImage(e.target.files[0]);
 
-  const addScaleItem = (e) => {
+  const addScaleItem = async (e) => {
     e.preventDefault();
+
+    const data = await ( await fetch("http://localhost:3000/api/getsession")).json();
+    const id = parseInt(data[0].id);
 
     const myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/x-www-form-urlencoded');
 
-    console.log(e.target[0].value,e.target[3].value,e.target[2].value,e.target[1].value);
-
     const urlencoded = new URLSearchParams();
-    urlencoded.append('userId', props.id);
+    urlencoded.append('userId', id);
     urlencoded.append('weightfull', e.target[3].value);
     urlencoded.append('weightone', e.target[2].value);
     urlencoded.append('producetype', selectedType.name);
     urlencoded.append('name', e.target[0].value+"");
     urlencoded.append('description', e.target[1].value+"");
 
-    fetch(`./api/scales`, {
+    const response = await fetch(`./api/scales`, {
       method: 'POST',
       body: urlencoded,
     })
@@ -94,17 +95,12 @@ export function Modal(props: ModalProps) {
   const uploadImage = async (e) => {
     e.preventDefault();
 
-    const myHeaders = new Headers();
-    myHeaders.append('Access-Control-Allow-Origin', '*');
-
-    const form = new FormData();
-    form.append('id', props.id);
-    form.append('image', image);
-
-    const response = await fetch('./api/upload', {
-      method: 'POST',
-      headers: myHeaders,
-      body: form,
+    const test = new FormData();
+    test.append("file", image);
+    test.append("id",'1')
+    const response = await fetch("/api/uploadFile", {
+      method: "POST",
+      body: test
     });
 
     const file = await response.json();
@@ -114,7 +110,6 @@ export function Modal(props: ModalProps) {
         icon: 'success',
         title: 'Image was successfully uploaded.',
       });
-      checkFreshness(file);
       props.closeModal();
     } else if (response.status == 500) {
       Toast.fire({
@@ -122,6 +117,7 @@ export function Modal(props: ModalProps) {
         title: 'Error, please make sure you have uploaded valid image format.',
       });
     }
+    checkFreshness(file);
   };
 
   const checkFreshness = async (data) => {
@@ -129,12 +125,12 @@ export function Modal(props: ModalProps) {
     const urlencoded = new URLSearchParams();
     urlencoded.append('id', props.id);
     urlencoded.append('type', 'apple');
-    urlencoded.append('file', data.path);
+    urlencoded.append('file', data.filepath);
 
     const myHeaders = new Headers();
     myHeaders.append('Access-Control-Allow-Origin', '*');
 
-    const response = await fetch('./api/prediction', {
+    const response = await fetch('./api/freshness', {
       method: 'POST',
       headers: myHeaders,
       body: urlencoded,
@@ -142,18 +138,18 @@ export function Modal(props: ModalProps) {
 
     let prediction = await response.json();
 
+
     if (response.status == 201) {
-      setShowLoading(false);
       prediction = Object.values(prediction);
       Swal.fire(
         'Image Analysis',
         `This image is a ${prediction[0]}, with accuracy of ${prediction[2]}%`,
         'info'
       );
-      if (prediction[0] == 'rotten apples') {
+      if (prediction[0].includes("rotten")) {
         createTask();
       }
-      console.log(prediction);
+      setShowLoading(false);
       props.closeModal();
       return;
     }
@@ -168,11 +164,14 @@ export function Modal(props: ModalProps) {
   };
 
   const createTask = async () => {
-    const form = new FormData();
-    form.append('id', props.id);
+    const data = await ( await fetch("http://localhost:3000/api/getsession")).json();
+    const id = parseInt(data[0].id);
+
+    const form = new URLSearchParams();
+    form.append('id', id);
     form.append('message', 'A rotten apple has been found, resolve asap!');
 
-    const response = await fetch(add_task, {
+    const response = await fetch("http://localhost:3000/api/tasks", {
       method: 'POST',
       body: form,
     });

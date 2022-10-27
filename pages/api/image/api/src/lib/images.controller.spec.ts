@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../../../prisma/shared/src/lib/prismaService.service';
 import { ImagesRepository } from '../../../repository/src/lib/images.repository';
 import { ImagesService } from '../../../service/src/lib/images.service';
-import { ImagesController } from './images.controller';
+import { ImagesController } from './';
 
 
 const mockString: jest.Mocked<string> = new String() as string;
