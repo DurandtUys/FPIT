@@ -1,8 +1,8 @@
 export const User = [{
-id:'1',
-name:'test',
-surname:'test',
-Bio:'This is the test/demo account',
-email:'test@test.com'
+id:'3',
+name:'Durandt',
+surname:'Uys',
+Bio:'Hello world',
+email:'durandtu@gmail.com'
 }
 ]

@@ -1,5 +1,5 @@
 import {PrismaClient} from "@prisma/client"
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import fs from 'fs'
 
 export default async function handler(req,res)
