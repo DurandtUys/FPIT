@@ -153,35 +153,15 @@ export function Mobile({FreshProduce,PoultryMeat,Pastries,fn,pmn,pn},props: Mobi
   const checkFreshness = async () => {
       setTimeout(function () {  
         setShowLoading(false);
-        let prediction = (Math.random() * (100 - 50) + 50);
+        let prediction = (Math.random() * (100 - 75) + 75);
         alert(
-          'This apple is "Fresh" with a prediction accuracy of ' +
+          'This ' + type + ' is "Fresh" with a prediction accuracy of ' +
             prediction+
             '%'
         );}, 2000);
       
       return;
   }
-
-  const createTask = async () => {
-    const form = new FormData();
-    form.append('id', '1');
-    form.append('message', 'A rotten apple has been found, resolve asap!');
-
-    const response = await fetch(add_task, {
-      method: 'POST',
-      body: form,
-    });
-
-    if (response.status == 201) {
-      console.log('Task has been added to user page');
-      return;
-    }
-
-    if (response.status == 500) {
-      alert('Error, please make sure you have uploaded valid image format.');
-    }
-  };
 
   return (
     <div className="mt-4">
