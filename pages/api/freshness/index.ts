@@ -2,13 +2,12 @@ import { NotFoundException } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
-import node from '@tensorflow/tfjs-node';
+const tfnode = require('@tensorflow/tfjs-node');
 
 export default async function handler(req, res) {
 
-  const prediction =  await predict(req.body.id,req.body.type,req.body.file);
+  const prediction =  await predict(parseInt(req.body.id),req.body.type,req.body.file);
 
-  const prisma = new PrismaClient();
 
   async function predict(id: number, type: string, file: string) {
     let model1;
@@ -24,7 +23,7 @@ export default async function handler(req, res) {
     //const model = await mobilenet.load();
     const imagePath = file;
     const image = fs.readFileSync(imagePath);
-    const imagetensor = node.node.decodeImage(image, 3);
+    const imagetensor = tfnode.node.decodeImage(image, 3);
     const im = tf.image.resizeBilinear(imagetensor, [180, 180]) as tf.Tensor3D;
     //const predictions = await model.classify(im);
     const prediction = model1.predict(
@@ -95,12 +94,20 @@ export default async function handler(req, res) {
 
   async function getTasksMessage(id: number, message: string) {
     
-    return await this.prisma.notification.findFirst({
+  const prisma = new PrismaClient();
+    
+    const data = await prisma.notification.findFirst({
       where: { userId: +id, Type: 'Task', message: message },
     });
+
+    prisma.$disconnect;
+
+    return data;
   }
 
   async function createTask(id: number, message: string,tasktype:string,produceType:string) {
+    
+  const prisma = new PrismaClient();
     if((await prisma.user.findUnique({where:{id:id}})== null))
     {
       throw new NotFoundException('No such id exists');
